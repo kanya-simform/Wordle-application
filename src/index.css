@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+body {
+  background-color: black;
+}
+
+.keyboard-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 8);
+  grid-template-rows: repeat(3, 32);
+  grid-column-gap: 10px;
+  grid-row-gap: 8px;
+  width: 100%;
+}
