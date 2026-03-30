@@ -8,16 +8,10 @@ const keyboardRows = [
 ];
 
 interface KeyboardEntryProps {
-  misplacedLetters: string[];
-  correctLetters: string[];
-  incorrectLetters: string[];
+  letterColors: Record<string, string>;
 }
 
-const KeyboardEntry = ({
-  misplacedLetters,
-  correctLetters,
-  incorrectLetters,
-}: KeyboardEntryProps) => {
+const KeyboardEntry = ({ letterColors }: KeyboardEntryProps) => {
   const handleKeyClick = (key: string) => {
     const event = new KeyboardEvent("keyup", {
       key:
@@ -40,32 +34,15 @@ const KeyboardEntry = ({
     return `${baseClasses} h-12 w-10`;
   };
 
+  // Apply accumulated letter colors to matching keyboard keys
   useEffect(() => {
-    if (correctLetters && correctLetters.length > 0) {
-      correctLetters.forEach((letter) => {
-        const letterElement = document.getElementsByClassName(
-          letter
-        )[0] as HTMLElement;
-        letterElement.style.backgroundColor = "green";
-      });
-    }
-    if (misplacedLetters && misplacedLetters.length > 0) {
-      misplacedLetters.forEach((letter) => {
-        const letterElement = document.getElementsByClassName(
-          letter
-        )[0] as HTMLElement;
-        letterElement.style.backgroundColor = "#c6d160";
-      });
-    }
-    if (incorrectLetters && incorrectLetters.length > 0) {
-      incorrectLetters.forEach((letter) => {
-        const letterElement = document.getElementsByClassName(
-          letter
-        )[0] as HTMLElement;
-        letterElement.style.backgroundColor = "gray";
-      });
-    }
-  }, [correctLetters, misplacedLetters]);
+    Object.entries(letterColors).forEach(([letter, color]) => {
+      const elements = document.getElementsByClassName(letter);
+      if (elements[0]) {
+        (elements[0] as HTMLElement).style.backgroundColor = color;
+      }
+    });
+  }, [letterColors]);
 
   return (
     <div className="flex flex-col items-center gap-2 mt-6">
@@ -76,6 +53,13 @@ const KeyboardEntry = ({
               key={key}
               className={getKeyClassName(key)}
               onClick={() => handleKeyClick(key)}
+              aria-label={
+                key === "BACKSPACE"
+                  ? "Backspace"
+                  : key === "ENTER"
+                  ? "Enter"
+                  : `Letter ${key}`
+              }
             >
               {key === "BACKSPACE" ? "⌫" : key}
             </button>
