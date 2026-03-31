@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, memo } from "react";
 
 // Keyboard layout organized by rows like a real QWERTY keyboard
 const keyboardRows = [
@@ -24,8 +24,8 @@ const KeyboardEntry = ({
         key === "BACKSPACE"
           ? "Backspace"
           : key === "ENTER"
-          ? "Enter"
-          : key.toLowerCase(),
+            ? "Enter"
+            : key.toLowerCase(),
       bubbles: true,
     });
     document.dispatchEvent(event);
@@ -44,28 +44,34 @@ const KeyboardEntry = ({
     if (correctLetters && correctLetters.length > 0) {
       correctLetters.forEach((letter) => {
         const letterElement = document.getElementsByClassName(
-          letter
+          letter,
         )[0] as HTMLElement;
-        letterElement.style.backgroundColor = "green";
+        if (letterElement) {
+          letterElement.style.backgroundColor = "green";
+        }
       });
     }
     if (misplacedLetters && misplacedLetters.length > 0) {
       misplacedLetters.forEach((letter) => {
         const letterElement = document.getElementsByClassName(
-          letter
+          letter,
         )[0] as HTMLElement;
-        letterElement.style.backgroundColor = "#c6d160";
+        if (letterElement) {
+          letterElement.style.backgroundColor = "#c6d160";
+        }
       });
     }
     if (incorrectLetters && incorrectLetters.length > 0) {
       incorrectLetters.forEach((letter) => {
         const letterElement = document.getElementsByClassName(
-          letter
+          letter,
         )[0] as HTMLElement;
-        letterElement.style.backgroundColor = "gray";
+        if (letterElement) {
+          letterElement.style.backgroundColor = "gray";
+        }
       });
     }
-  }, [correctLetters, misplacedLetters]);
+  }, [correctLetters, misplacedLetters, incorrectLetters]);
 
   return (
     <div className="flex flex-col items-center gap-2 mt-6">
@@ -86,4 +92,4 @@ const KeyboardEntry = ({
   );
 };
 
-export default KeyboardEntry;
+export default memo(KeyboardEntry);

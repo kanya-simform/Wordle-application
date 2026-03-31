@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
-import { axiosInstance, dictionaryInstance } from "../service/axiosInstance";
+import { useEffect, useState, useMemo, useCallback } from "react";
+import { dictionaryInstance } from "../service/axiosInstance";
 import { ToastContainer, toast } from "react-toastify";
+import { getRandomWord } from "../../utils";
 
 const gridRowLength = 6;
 const gridColLength = 5;
@@ -33,23 +34,24 @@ const WordleText = ({
   const [correctCell, setCorrectCell] = useState<CellType[]>([]);
   const [incorrectCell, setIncorrectCell] = useState<CellType[]>([]);
 
-  const getGrids = () => {
-    const grids = [];
+  // Memoize grid generation to prevent recreation on every render
+  const grids = useMemo(() => {
+    const elements = [];
     for (let i = 0; i < gridRowLength; i++) {
       for (let j = 0; j < gridColLength; j++) {
-        grids.push(
+        elements.push(
           <div key={`key${i}${j}`} className="h-full w-full flex items-center">
             <input
               className="h-16 w-16 border-gray-700 border-2 text-white text-center text-4xl font-extrabold"
               id={`element${i}${j}`}
               disabled
             />
-          </div>
+          </div>,
         );
       }
     }
-    return grids;
-  };
+    return elements;
+  }, []);
 
   const isValidWord = async (word: string) => {
     try {
@@ -85,11 +87,11 @@ const WordleText = ({
       for (let j = 0; j < originalWord.length; j++) {
         const index: number = correctlyPlaced.findIndex((cell) => {
           const contentForCorrect = document.getElementById(
-            `element${cell.x}${cell.y}`
+            `element${cell.x}${cell.y}`,
           ) as HTMLInputElement;
 
           const contentForCurrent = document.getElementById(
-            `element${selectedCell.x}${i}`
+            `element${selectedCell.x}${i}`,
           ) as HTMLInputElement;
 
           return (
@@ -109,11 +111,11 @@ const WordleText = ({
 
     for (let i = 0; i < wordEntered.length; i++) {
       const indexCorrect = correctlyPlaced.findIndex(
-        (cell) => cell.x === selectedCell.x && cell.y === i
+        (cell) => cell.x === selectedCell.x && cell.y === i,
       );
       if (indexCorrect !== -1) continue;
       const indexMisplaced = misplaced.findIndex(
-        (cell) => cell.x === selectedCell.x && cell.y === i
+        (cell) => cell.x === selectedCell.x && cell.y === i,
       );
       if (indexMisplaced !== -1) continue;
 
@@ -133,109 +135,111 @@ const WordleText = ({
     }));
   };
 
-  const generateWord = async () => {
-    try {
-      const response = await axiosInstance.get("/api?words=1&length=5");
-      setOriginalWord(response.data[0]);
-    } catch (err) {
-      console.log(err);
-    }
-  };
+  const generateWord = useCallback(() => {
+    const word = getRandomWord();
+    setOriginalWord(word);
+    console.log(word);
+  }, []);
 
-  const handleKeyPress = (event: KeyboardEvent) => {
-    if (
-      (event.key === "Backspace" || event.key === "Delete") &&
-      selectedCell.y !== 0
-    ) {
+  const handleKeyPress = useCallback(
+    (event: KeyboardEvent) => {
+      if (
+        (event.key === "Backspace" || event.key === "Delete") &&
+        selectedCell.y !== 0
+      ) {
+        const newY = selectedCell.y - 1;
+        const element = document.getElementById(
+          `element${selectedCell.x}${newY}`,
+        ) as HTMLInputElement;
+        element.value = "";
+        setWordEntered((prevWord: string) => {
+          return prevWord
+            .split("")
+            .slice(0, prevWord.length - 1)
+            .join("");
+        });
+        setSelectedCell((prev) => ({ ...prev, y: newY }));
+        return;
+      }
+
+      if (
+        event.key === "Enter" &&
+        selectedCell.x < gridRowLength &&
+        selectedCell.y === gridColLength
+      ) {
+        handleWordCheck();
+        return;
+      }
+      const condition =
+        ((event.key.charCodeAt(0) >= 97 && event.key.charCodeAt(0) <= 122) ||
+          (event.key.charCodeAt(0) >= 65 && event.key.charCodeAt(0) <= 90)) &&
+        event.key.length === 1;
+
+      if (!condition) return;
+
       const element = document.getElementById(
-        `element${selectedCell.x}${--selectedCell.y}`
+        `element${selectedCell.x}${selectedCell.y}`,
       ) as HTMLInputElement;
-      element.value = "";
-      setWordEntered((prevWord: string) => {
-        return prevWord
-          .split("")
-          .slice(0, prevWord.length - 1)
-          .join("");
+
+      element.value = event.key.toUpperCase();
+      setWordEntered((word) => {
+        return `${word}${element.value}`;
       });
-      return;
-    }
+      if (selectedCell.y < gridColLength) {
+        setSelectedCell((prevSelectedCell) => ({
+          ...prevSelectedCell,
+          y: prevSelectedCell.y + 1,
+        }));
+      }
+    },
+    [selectedCell, wordEntered, originalWord],
+  );
 
-    if (
-      event.key === "Enter" &&
-      selectedCell.x < gridRowLength &&
-      selectedCell.y === gridColLength
-    ) {
-      handleWordCheck();
-      return;
-    }
-    const condition =
-      ((event.key.charCodeAt(0) >= 97 && event.key.charCodeAt(0) <= 122) ||
-        (event.key.charCodeAt(0) >= 65 && event.key.charCodeAt(0) <= 90)) &&
-      event.key.length === 1;
-
-    if (!condition) return;
-
-    const element = document.getElementById(
-      `element${selectedCell.x}${selectedCell.y}`
-    ) as HTMLInputElement;
-
-    element.value = event.key.toUpperCase();
-    setWordEntered((word) => {
-      return `${word}${element.value}`;
-    });
-    if (selectedCell.y < gridColLength) {
-      setSelectedCell((prevSelectedCell) => ({
-        ...prevSelectedCell,
-        y: prevSelectedCell.y + 1,
-      }));
-    }
-  };
-
-  const markCorrectGreen = () => {
+  const markCorrectGreen = useCallback(() => {
     const correctLetters = [];
     for (const cell of correctCell) {
       const element = document.getElementById(
-        `element${cell.x}${cell.y}`
+        `element${cell.x}${cell.y}`,
       ) as HTMLInputElement;
       correctLetters.push(element.value);
       element.style.backgroundColor = "green";
     }
     setCorrectLetters(correctLetters);
     setCorrectCell([]);
-  };
+  }, [correctCell, setCorrectLetters]);
 
-  const markMisplacedYellow = () => {
+  const markMisplacedYellow = useCallback(() => {
     const misplacedLetters = [];
     for (const cell of misplacedCell) {
       const element = document.getElementById(
-        `element${cell.x}${cell.y}`
+        `element${cell.x}${cell.y}`,
       ) as HTMLInputElement;
       misplacedLetters.push(element.value);
       element.style.backgroundColor = "#c6d160";
     }
     setMisplacedLetters(misplacedLetters);
     setMisplacedCell([]);
-  };
+  }, [misplacedCell, setMisplacedLetters]);
 
-  const markIncorrectGray = () => {
+  const markIncorrectGray = useCallback(() => {
     const incorrectLetters = [];
     for (const cell of incorrectCell) {
       const element = document.getElementById(
-        `element${cell.x}${cell.y}`
+        `element${cell.x}${cell.y}`,
       ) as HTMLInputElement;
       incorrectLetters.push(element.value);
       element.style.backgroundColor = "gray";
     }
     setIncorrectLetters(incorrectLetters);
     setIncorrectCell([]);
-  };
+  }, [incorrectCell, setIncorrectLetters]);
 
   useEffect(() => {
     document.addEventListener("keyup", handleKeyPress);
     return () => {
       document.removeEventListener("keyup", handleKeyPress);
     };
-  }, [selectedCell, wordEntered]);
+  }, [selectedCell, wordEntered, originalWord]);
 
   useEffect(() => {
     generateWord();
@@ -261,7 +265,7 @@ const WordleText = ({
 
   return (
     <div className="flex w-full my-11 justify-center">
-      <div className="grid grid-cols-5 grid-rows-6 gap-2 z-0">{getGrids()}</div>
+      <div className="grid grid-cols-5 grid-rows-6 gap-2 z-0">{grids}</div>
       <ToastContainer position="top-center" />
     </div>
   );

@@ -1,3 +1,5 @@
+import { memo } from "react";
+
 const Navbar = () => {
   return (
     <nav className="flex p-5 border-b-gray-500 border-b-1 h-14 w-full">
@@ -9,4 +11,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default memo(Navbar);
