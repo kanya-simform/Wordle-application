@@ -1,5 +1,5 @@
 ---
-name: Code Debug & Review Agent
+name: code-debug-review-agent
 
 description: Debug code issues, identify bugs, and provide detailed code reviews with improvements and best practices.
 
