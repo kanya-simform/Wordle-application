@@ -1,5 +1,5 @@
 ---
-name: Code Debug & Review Agent!!!!
+name: Code Debug & Review Agent
 
 description: Debug code issues, identify bugs, and provide detailed code reviews with improvements and best practices.
 
@@ -15,15 +15,15 @@ tools:
 
 agents: []
 
-user-invokable: true
+user-invocable: true
 
 disable-model-invocation: false
 
 handoffs:
-  - label: "Deep Debug Analysis"
-    agent: Code Debug & Review Agent
-    prompt: "Perform deep debugging and root cause analysis"
-    send: true
+  - label: "Check Performance"
+    agent: Performance Analysis Agent
+    prompt: "Check performance implications of this code and suggest optimizations"
+    send: true # the prompt is to be send automatically or not
 ---
 
 ## Instructions

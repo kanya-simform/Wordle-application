@@ -13,7 +13,7 @@ model:
 tools:
   ["read/readFile", "edit/editFiles", "execute", "search", "web", "firecrawl/*"]
 
-user-invokable: true
+user-invocable: true
 
 disable-model-invocation: false
 
@@ -21,12 +21,7 @@ handoffs:
   - label: "Deep Debug Analysis"
     agent: Code Debug & Review Agent
     prompt: "Perform deep debugging and identify root cause of performance issue"
-    send: true
-
-  - label: "Optimize Code"
-    agent: Performance Analysis Agent
-    prompt: "Provide optimized version of this code with explanations"
-    send: true
+    send: false
 ---
 
 ## Instructions
