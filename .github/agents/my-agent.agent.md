@@ -27,10 +27,7 @@ handoffs:
 
 mcp-servers:
   - name: firecrawl
-    command: npx
-    args:
-      - -y
-      - "firecrawl-mcp"
+    url: https://api.firecrawl.dev/mcp
 ---
 
 ## Instructions
