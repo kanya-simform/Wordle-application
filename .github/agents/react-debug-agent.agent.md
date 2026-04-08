@@ -13,11 +13,9 @@ model:
 tools:
   ["read/readFile", "edit/editFiles", "execute", "search", "web", "firecrawl/*"]
 
-agents: []
-
 user-invocable: true
 
-disable-model-invocation: false
+disable-model-invocation: false # Can model auto pick this agent in case of sub agents
 
 handoffs:
   - label: "Check Performance"

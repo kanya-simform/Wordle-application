@@ -8,7 +8,7 @@ argument-hint: Try "analyze performance", "why is this slow?", or "optimize this
 target: vscode
 
 model:
-  - Claude Sonnet 4.5 (copilot)
+  - Gemini 2.5 Pro (copilot)
 
 tools:
   ["read/readFile", "edit/editFiles", "execute", "search", "web", "firecrawl/*"]
@@ -21,7 +21,7 @@ handoffs:
   - label: "Deep Debug Analysis"
     agent: Code Debug & Review Agent
     prompt: "Perform deep debugging and identify root cause of performance issue"
-    send: false
+    send: true
 ---
 
 ## Instructions

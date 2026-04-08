@@ -13,17 +13,11 @@ tools: ["agent", "edit", "firecrawl/*"]
 
 agents: # for sub agents that it can invoke
   - code_review
+  - Performance Analysis Agent
 
-user-invokable: true
+user-invocable: true
 
 disable-model-invocation: false
-
-mcp-servers:
-  - name: firecrawl
-    command: npx
-    args:
-      - -y
-      - "firecrawl-mcp"
 
 handoffs:
   - label: "Debug React Issue"
